@@ -3166,7 +3166,9 @@ def installation_yaml(data):
     # so an update never turns swiping on for a screen that is out there.
     # The components and fonts come from the branch the board package does (packages/<key>.yaml), main unless the app
     # runs in another channel.
-    branch_line = f'  GITHUB_REF: {quote(ref())}\n' if ref() != REF else ''
+    # This test app can build the 5B before its board package reaches a release.
+    package_ref = 'refs/pull/421/head' if board == 'waveshare5b' else ref()
+    branch_line = f'  GITHUB_REF: {quote(package_ref)}\n' if package_ref != REF else ''
     # An OTA password, not yet `ota: encryption:` with the api key: ESPHome before 2026.9 refuses that, and the owner's
     # ESPHome Device Builder may still be older (docs/RELEASING.md, "ESPHome versions").
     key, ota = base64.b64encode(secrets.token_bytes(32)).decode(), secrets.token_urlsafe(24)
@@ -3199,7 +3201,7 @@ esphome:
 packages:
   display:
     url: {REPO}
-    ref: {ref()}
+    ref: {package_ref}
     files: [packages/{board}.yaml]
     refresh: 0s
   local_overrides: !include {name}.local.yaml
